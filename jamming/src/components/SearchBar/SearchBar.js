@@ -12,8 +12,9 @@ class SearchBar extends React.Component {
   }
 
   handleClick(e) {
-    console.log("Event: " + this.handleTermChange(e))
-    this.props.onSearch(e.target.value)
+    //console.log("Sibling: " + e.target.previousElementSibling)
+    console.log("Term: " + e.target.previousElementSibling.value)
+    this.props.onSearch(e.target.previousElementSibling.value)
   }
 
   handleTermChange(e) {
