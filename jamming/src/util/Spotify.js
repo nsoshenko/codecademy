@@ -1,6 +1,16 @@
+const devMode = true
 let token = ''
 const clientId = 'e0a80df1e53b4172ab4bb7cd7d55b595'
-const redirectURI = "http://nsoshenko-jamming.surge.sh/"
+let redirectURI = ''
+
+// Set redirectURI after authorization depending on environment
+if (devMode) {
+  redirectURI = 'http://localhost:3000/'
+  console.log('Dev mode')
+}
+else {
+  redirectURI = 'http://nsoshenko-jamming.surge.sh/'
+}
 
 const Spotify = {
   getAccessToken: function getAccessToken() {
@@ -25,16 +35,17 @@ const Spotify = {
     }
   },
 
-  search: async function search(term) {
+  search: function search(term) {
     const endpoint = `https://api.spotify.com/v1/search?type=track&q=${term}`
 
     return fetch(endpoint, {
       headers: {
-        Authorization: `Bearer ${await this.getAccessToken()}`,
+        Authorization: `Bearer ${this.getAccessToken()}`,
       },
     }).then(response => {
-      return response.json() }).then(responseJson => {
-        if (!responseJson.tracks.items) return []
+      return response.json()
+    }).then(responseJson => {
+        if (!responseJson.tracks) return []
         else {
           return responseJson.tracks.items.map(track => {
             return {
@@ -54,11 +65,13 @@ const Spotify = {
       console.log('No name or tracks in playlist!')
       return
     }
+    console.log(JSON.stringify(tracks))
 
     // Prepare variables
     const access_token = await this.getAccessToken()
     const headers = {
       Authorization: `Bearer ${access_token}`,
+      'Content-Type': 'application/json',
     }
     const endpointUserInfo = 'https://api.spotify.com/v1/me'
 
@@ -89,7 +102,20 @@ const Spotify = {
     console.log(playlistID)
 
     // Fill the Playlist
-
+    let snapshotID = await fetch(`https://api.spotify.com/v1/playlists/${playlistID}/tracks`,
+      {
+        headers: headers,
+        method: 'POST',
+        body: JSON.stringify({
+          uris: tracks
+        }),
+      }).then(response => {
+        return response.json()
+      }).then(responseJson => {
+        console.log(responseJson)
+        return responseJson.snapshot_id
+      })
+      console.log(snapshotID)
   }
 }
 
